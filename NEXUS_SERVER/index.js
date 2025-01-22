@@ -15,7 +15,6 @@ const dotenvConfig = dotenv.config({
     path: path.resolve(__dirname, './config', '.env')
 })
 
-app.use('/upload', express.static(path.join(__dirname, 'upload')));
 
 
 if (dotenvConfig.error) {
@@ -29,9 +28,8 @@ app.use(globalErrorMiddleware);
 // app.use(cors());
 
 app.use(cors({
-    // origin: '*', 
+    origin: '*', 
     // origin: ['http://localhost:5173', 'http://127.0.0.1:5500'],  
-    origin: ['https://admin.gamescorner.ae', 'https://gamescorner.ae'],  
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
 

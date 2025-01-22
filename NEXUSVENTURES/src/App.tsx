@@ -5,7 +5,9 @@ import { Suspense, lazy } from 'react';
 import Footer from './shared/Footer';
 
 const Login = lazy(() => import('./components/Login'));
-const Signup =  lazy(() => import('./components/Signup'));
+const Signup =  lazy(() => import('./components/SignUp'));
+const Home =  lazy(() => import('./components/Home'));
+
 
 function App() {
 
@@ -16,6 +18,7 @@ function App() {
        <Routes>
        <Route path='/' element={<Login />} />
        <Route path='/sign_up' element={<Signup/>} />
+       <Route path='/home' element={<Home/>} />
        </Routes>
        </Suspense>
        <Footer/>

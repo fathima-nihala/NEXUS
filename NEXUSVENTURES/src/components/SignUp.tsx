@@ -5,7 +5,10 @@ import { FaWhatsapp } from "react-icons/fa";
 import { IoCallOutline } from "react-icons/io5";
 import { MdOutlinePerson2 } from "react-icons/md";
 import { useNavigate } from 'react-router-dom';
-
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../redux/store';
+import { webRegister } from '../slices/authSlice';
+import { useSnackbar } from 'notistack';
 
 interface FormData {
     firstName: string;
@@ -22,6 +25,7 @@ interface FormData {
 
 const SignUp: FC = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch<AppDispatch>();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [formData, setFormData] = useState<FormData>({
@@ -36,6 +40,7 @@ const SignUp: FC = () => {
         confirmPassword: '',
         agreeToTerms: false
     });
+    const { enqueueSnackbar } = useSnackbar();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value, type, checked } = e.target;
@@ -45,9 +50,25 @@ const SignUp: FC = () => {
         }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
+        if (formData.password !== formData.confirmPassword) {
+            enqueueSnackbar('Passwords do not match!', { variant: 'error' });
+            return;
+        }
+
+        if (!formData.agreeToTerms) {
+            enqueueSnackbar('Please agree to the terms and conditions.', { variant: 'error' });
+            return;
+        }
+
+        try {
+            await dispatch(webRegister(formData)).unwrap();
+            enqueueSnackbar('Registration successful!', { variant: 'success' });
+            navigate('/');
+        } catch (error: any) {
+            enqueueSnackbar(error.message || 'Registration failed. Please try again.', { variant: 'error' });
+        }
     };
 
     return (
@@ -168,7 +189,7 @@ const SignUp: FC = () => {
                                             <input
                                                 type={showPassword ? "text" : "password"}
                                                 name="password"
-                                                placeholder="Password"
+                                                placeholder="Password (6 characters)"
                                                 className="w-full px-4 py-2 rounded bg-white text-black pr-10"
                                                 value={formData.password}
                                                 onChange={handleInputChange}

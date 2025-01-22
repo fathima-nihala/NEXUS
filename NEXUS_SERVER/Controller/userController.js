@@ -1,6 +1,7 @@
 const catchAsyncError = require("../Middlewares/catchAsyncError");
 const ErrorHandler = require("../Middlewares/errorHandler");
 const User = require('../Model/userModel');
+const sendToken = require("../Utils/sendToken");
 
 exports.register = catchAsyncError(async (req, res, next) => {
     try {
@@ -25,26 +26,17 @@ exports.register = catchAsyncError(async (req, res, next) => {
 })
 
 exports.Login = catchAsyncError(async (req, res, next) => {
-    try {
-        const { name, password } = req.body;
+    const { name, password } = req.body;
 
-        const user = await User.findOne({ name });
-        if (!user) {
-            return res.status(404).json({ message: 'User not found.' });
-        }
-
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(400).json({ message: 'Invalid password.' });
-        }
-
-        const token = jwt.sign({ id: user._id, name: user.name }, JWT_SECRET, {
-            expiresIn: '1h',
-        });
-
-        res.status(200).json({ message: 'Login successful.', token });
-    } catch (error) {
-        res.status(500).json({ message: 'Something went wrong.', error });
+    if (!name || !password) {
+        return next(new ErrorHandler('Please enter name and password', 400));
     }
 
-})
+    const user = await User.findOne({ name }).select('+password');
+
+    if (!user || !(await user.isValidPassword(password))) {
+        return next(new ErrorHandler('Invalid email or password', 401));
+    }
+
+    sendToken(user, 200, res);
+});

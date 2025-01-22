@@ -1,8 +1,52 @@
 import { FC, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../redux/store';
+import { useNavigate } from 'react-router-dom';
+import { webLogin } from '../slices/authSlice';
+import { useSnackbar } from 'notistack';
+
 
 const Login: FC = () => {
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
+    const { enqueueSnackbar } = useSnackbar();
     const [showPassword, setShowPassword] = useState(false);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({
+            ...formData,
+            [e.target.id]: e.target.value
+        });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await dispatch(webLogin(formData)).unwrap();
+            enqueueSnackbar('Login successful!', {
+                variant: 'success',
+                anchorOrigin: {
+                    vertical: 'top',
+                    horizontal: 'right',
+                }
+            });
+            navigate('/home');
+        } catch (error: any) {
+            const errorMessage = error?.message || 'An unexpected error occurred. Please try again.';
+            enqueueSnackbar(errorMessage, {
+                variant: 'error',
+                anchorOrigin: {
+                    vertical: 'top',
+                    horizontal: 'right',
+                },
+            });
+        }
+    };
 
     return (
         <div className="md:min-h-screen bg-white">
@@ -21,16 +65,18 @@ const Login: FC = () => {
                                 <h2 className="text-3xl font-bold mb-2">Login</h2>
                                 <p className="text-gray-300 mb-8">Fill in your credentials and click on the Login button</p>
 
-                                <form className="space-y-6">
+                                <form onSubmit={handleSubmit} className="space-y-6">
                                     <div>
-                                        <label htmlFor="username" className="block text-sm font-medium mb-2">
-                                            User name
+                                        <label htmlFor="email" className="block text-sm font-medium mb-2">
+                                            User Email
                                         </label>
                                         <input
-                                            type="text"
-                                            id="username"
+                                            type="email"
+                                            id="email"
                                             className="w-full px-4 py-2 rounded bg-white text-black"
-                                            placeholder="Enter username"
+                                            placeholder="Enter email"
+                                            value={formData.email}
+                                            onChange={handleInputChange}
                                         />
                                     </div>
 
@@ -44,6 +90,8 @@ const Login: FC = () => {
                                                 id="password"
                                                 className="w-full px-4 py-2 rounded bg-white text-black pr-10"
                                                 placeholder="Enter password"
+                                                value={formData.password}
+                                                onChange={handleInputChange}
                                             />
                                             <button
                                                 type="button"
